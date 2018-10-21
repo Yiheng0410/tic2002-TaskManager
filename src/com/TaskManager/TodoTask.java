@@ -10,4 +10,8 @@ public class TodoTask extends Task{
         super(description,status);
     }
 
+    public String getType(){
+        return "todo";
+    }
+
 }

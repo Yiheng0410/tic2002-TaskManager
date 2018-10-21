@@ -1,4 +1,5 @@
 package com.TaskManager;
+
 import java.util.Scanner;
 import java.util.ArrayList;
 import java.util.List;
@@ -6,94 +7,120 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.PrintWriter;
-
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileWriter;
 
 
 public class Main {
     static Scanner in = new Scanner(System.in);
     static List<Task> tasks = new ArrayList<>();
-    static String path="task.rtf";
+    static String path = "tasks.txt";
 
     public static void main(String[] args) {
         String line;
-        int welcome=2;
         printWelcome();
-        //welcome=in.nextInt();
+        boolean isExit = false;
+        tasks = getTasksFromFile();
+        printTasks();
 
-        if(welcome==1){
-            boolean isExit = false;
+        while (!isExit) {
+            System.out.print("Your task? ");
 
-            while (!isExit){
-                System.out.print("Your task? ");
-                line = in.nextLine();
-                String command = line.split(" ")[0];
-                if(command=="exit"||command==" "){
-                    isExit=true;
+            line = in.nextLine();
+
+            String command = line.split(" ")[0];
+
+            switch (command) {
+                case "exit":
+                    break;
+                case " ": // exit if user input is empty
+                    isExit = true;
+                    break;
+                case "add":
+                    tasks.add(createTask(line.substring(4)));
+                    break;
+                case "print":
+                    printTasks();
+                    break;
+                case "update":
+                    try {
+                        update_file(path);
+                    } catch (IOException e) {
+                        printError("Problem encountered while updating file" + e.getMessage());
+                    }
+                    break;
+                default:
                     printError();
-                }
-                else{
-                    createTaskFromUserInput(command,line);
-                }
             }
-            exit();
         }
-        else if(welcome==2){
-            getTasksFromFile();
-            printTasks();
-        }
-        else
-        {
-            printError();
-        }
-    }
-    private static void printWelcome() {
-        System.out.println("Welcome to TaskManager! Manual Task input, press 1. Task file import, press 2");
+        exit();
     }
 
-    private static void  addTask(String input) throws TaskManagerException  {
-        Task task=new Task();
+    private static void printWelcome() {
+        System.out.println("Welcome to TaskManager!");
+    }
+
+    private static void addTask(String input) throws TaskManagerException {
+        Task task = new Task();
 
         task.setTask(input.substring(3).trim());
 
-        if(!task.description.isEmpty()){
+        if (!task.description.isEmpty()) {
             tasks.add(task);
-        }
-        else{
+        } else {
             throw new TaskManagerException("Empty description for Task");
         }
     }
 
-    private static void  addTodoTask(String input) throws TaskManagerException {
-        Task task=new TodoTask();
+    private static void addTodoTask(String input) throws TaskManagerException {
+        Task task = new TodoTask();
         task.setTask(input.substring(4).trim());
-        ((TodoTask) task).isDone=false;
-        if(task.description.isEmpty()){
+        ((TodoTask) task).isDone = false;
+        if (task.description.isEmpty()) {
             throw new TaskManagerException("Empty description for TodoTask");
-        }
-        else{
+        } else {
             tasks.add(task);
         }
     }
 
-    private static void  addDeadlineTask(String input) throws TaskManagerException {
-        Task task=new DeadlineTask();
-        String description=input.split("/")[0].trim().substring(9);
-        String by=input.substring(input.indexOf("by")+3,input.length());
+    private static Task addTodoTask(String des, String status) {
+        Task task = new TodoTask();
 
-        if(!input.contains("/")||!input.contains("by")){
+        task.setTask(des);
+
+        if (status == "T") {
+            ((TodoTask) task).isDone = true;
+        } else {
+            ((TodoTask) task).isDone = false;
+        }
+
+        return task;
+    }
+
+    private static void addDeadlineTask(String input) throws TaskManagerException {
+        Task task = new DeadlineTask();
+        String description = input.split("/")[0].trim().substring(9);
+        String by = input.substring(input.indexOf("by") + 3, input.length());
+
+        if (!input.contains("/") || !input.contains("by")) {
             throw new TaskManagerException("Invalid deadline format");
-        }
-        else if(description.isEmpty()){
+        } else if (description.isEmpty()) {
             throw new TaskManagerException("Empty description for DeadlineTask");
-        }
-        else if(by.isEmpty()){
+        } else if (by.isEmpty()) {
             throw new TaskManagerException("Empty deadline for DeadlineTask");
-        }
-        else{
+        } else {
             task.setTask(description);
             ((DeadlineTask) task).setBy(by);
             tasks.add(task);
         }
+    }
+
+    private static Task addDeadlineTask(String des, String status, String ddl) {
+        Task task = new DeadlineTask();
+        task.setTask(des);
+        ((DeadlineTask) task).setBy(ddl);
+        return task;
     }
 
     private static void markAsDone(String line) {
@@ -101,7 +128,6 @@ public class Main {
         tasks.get(index - 1).setDone(true);
         System.out.println("Tasks in the list: " + tasks.size());
     }
-
 
     private static void printError(String msg) {
         System.out.println(msg);
@@ -121,104 +147,96 @@ public class Main {
         }
     }
 
-    private static void getTasksFromFile() {
-        //List<Task> loadedTasks = new ArrayList<>();
+    private static List<Task> getTasksFromFile() {
+        List<Task> loadedTasks = new ArrayList<>();
+
         try {
             List<String> lines = loadFile(path);
+            //System.out.println(lines);
             for (String line : lines) {
                 if (line.trim().isEmpty()) { //ignore empty lines
                     continue;
                 }
-                tasks.add(createTaskFromFile(line)); //convert the line to a task and add to the list
+                loadedTasks.add(createTask(line)); //convert the line to a task and add to the list
             }
+
         } catch (FileNotFoundException e) {
             printError("problem encountered while loading data: " + e.getMessage());
         }
-        //return loadedTasks;
+
+        return loadedTasks;
     }
 
-    public static List<String> loadFile(String path) throws FileNotFoundException{
-        List<String> lines= new ArrayList<>();
+    public static List<String> loadFile(String path) throws FileNotFoundException {
+        List<String> lines = new ArrayList<>();
+
         File f = new File(path);
         Scanner s = new Scanner(f);
 
-        while (s.hasNext()){
-            System.out.println(s.next());
-            lines.add(s.next());
+        while (s.hasNext()) {
+            lines.add(s.nextLine());
         }
-
         s.close();
-
         return lines;
     }
 
-    public static void createTaskFromUserInput(String command,String line){
-            try{
-                switch (command) {
-                    case "add":
-                        addTask(line);
-                        System.out.println("Tasks in the list: "+tasks.size());
-                        break;
-                    case "todo":
-                        addTodoTask(line);
-                        System.out.println("Tasks in the list: "+tasks.size());
-                        break;
-                    case "deadline":
-                        addDeadlineTask(line);
-                        System.out.println("Tasks in the list: "+tasks.size());
-                        break;
-                    case "print":
-                        printTasks();
-                        break;
-                    case "done":
-                        markAsDone(line);
-                        break;
-                    default:
-                        printError();
-                }
-            }
-            catch (TaskManagerException e)
-            {
-                printError(e.getMessage());
-            }
-    }
+    private static Task createTask(String input) {
+        String[] inputs = input.split("\\|");
 
-    private static Task createTaskFromFile(String input){
-        boolean status = false;
+        Task task = new Task();
 
-        String description = input.split("\\|")[2];
-        Task task = new Task(description,status);
-
-        if(Integer.parseInt(input.split("\\|")[1].trim()) == 1){
-            status = true;
-            task.setDone(status);
+        for (int i = 0; i < inputs.length; i++) {
+            inputs[i] = inputs[i].trim();
         }
 
-        if(input.startsWith("D")){
-            String deadline = input.split("\\|")[3];
-            task = new DeadlineTask(description, status,deadline);
+        switch (inputs[0]) {
+            case "T":
+
+                task = addTodoTask(inputs[2], inputs[1]);
+                break;
+            case "D":
+                task = addDeadlineTask(inputs[2], inputs[1], inputs[3]);
+                break;
         }
 
         return task;
     }
 
-    public void updateTaskFile(List<Task> taskList){
-        try {
-            PrintWriter output = new PrintWriter(path);
-            for (int i = 0; i < taskList.size(); i++) {
-                int status = 0;
-                String description = taskList.get(i).getDescription();
-                if(taskList.get(i).isDone()) status = 1;
-                if(description.split("\\n").length > 2){
-                    output.println("Deadline | "+ Integer.toString(status) + " | " + taskList.get(i).getDescription() + " | " + (description.split("\\n")[2]));
-                } else{
-                    output.println("Todo | "+ Integer.toString(status) + " | " + taskList.get(i).getDescription());
-                }
-            }
-            output.close();
+    private static void update_file(String path) throws IOException {
+
+        FileWriter fw = new FileWriter(path);
+
+        for (Task task : tasks) {
+            String s = convertTaskToString(task);
+            fw.write(s);
+            fw.write(System.lineSeparator());
         }
-        catch (IOException e){
-            printError("problem encountered while writing data to file: " + e.getMessage());
+        fw.close();
+    }
+
+    private static String convertTaskToString(Task task) {
+        String type;
+        String isDone;
+        String content;
+        String doBy = " ";
+
+        if (task.isDone()) {
+            isDone = "1";
+        } else {
+            isDone = "0";
         }
+        content = task.getDescription();
+
+        String s = null;
+
+        if (task.getType().equals("todo")) {
+            type = "T";
+            s = type + " | " + isDone + " | " + content;
+        } else if (task.getType().equals("deadline")) {
+            type = "D";
+            //doBy = task.;
+            s = type + " | " + isDone + " | " + content + " | " + doBy;
+        }
+        return s;
     }
 }

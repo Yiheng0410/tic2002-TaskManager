@@ -22,6 +22,9 @@ public class DeadlineTask extends TodoTask{
         by=dt;
     }
 
+    public String getType(){
+        return "deadline";
+    }
 
     @Override
     public String toString(){

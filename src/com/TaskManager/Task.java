@@ -30,6 +30,10 @@ public class Task {
         return description;
     }
 
+    public String getType(){
+        return "task";
+    }
+
     @Override
     public String toString() {
         String status = null;
