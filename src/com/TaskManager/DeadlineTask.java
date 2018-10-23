@@ -1,33 +1,42 @@
 package com.TaskManager;
 
 public class DeadlineTask extends TodoTask{
-    protected String by;
+    protected String ddl;
 
-    public DeadlineTask(){
-        super();
-        by = " ";
-    }
-
-
-    public DeadlineTask(String description, boolean status, String by) {
+    public DeadlineTask(String description, boolean status, String ddl) {
         super(description,status);
-        this.by=by;
+        this.ddl=ddl;
     }
 
-    public String getBy(){
-        return by;
+    public void setDeadline(String ddl){
+        this.ddl=ddl;
+
     }
 
-    public void setBy(String dt){
-        by=dt;
+    public String getDeadline(){
+        return  this.ddl;
     }
 
     public String getType(){
         return "deadline";
     }
 
+    public static Task addDeadlineTask(String description, String done, String ddl) {
+        Boolean status;
+
+        if (done == "T") {
+            status = true;
+        } else {
+            status= false;
+        }
+
+        Task task = new DeadlineTask (description,status,ddl);
+
+        return task;
+    }
+
     @Override
     public String toString(){
-        return super.toString() + System.lineSeparator() + "do by: " + by;
+        return super.toString() + System.lineSeparator() + "do by: " + ddl;
     }
 }

@@ -1,48 +1,42 @@
 package com.TaskManager;
+
 import java.util.List;
 
-public class Task {
+public abstract class Task {
+
     protected String description;
-    protected boolean isDone;
+    //protected boolean isDone;
 
 
-    public Task(String name,boolean status){
-       setTask(name);
-       setDone(status);
-    }
-    public Task(){
-        this(" ",false);
+    public Task(String taskName) {
+        this.description = taskName;
     }
 
-    public void setTask(String name){
-        this.description=name;
+    public void setDescription(String taskName) {
+        this.description = taskName;
     }
 
-    public void setDone(boolean status){
-        isDone=status;
-    }
-
-    public boolean isDone(){
-        return isDone;
-    }
-
-    public String getDescription(){
+    public String getDescription() {
         return description;
     }
 
-    public String getType(){
+    public String getType() {
         return "task";
     }
 
+    public abstract void setStatus(boolean status);
+
+    public abstract boolean getStatus();
+
+    public abstract void setDeadline(String ddl);
+
+    public abstract String getDeadline();
+
+
     @Override
     public String toString() {
-        String status = null;
-        if (isDone){
-            status = "Yes";
-        } else {
-            status = "No";
-        }
-        return "description: "+ description + System.lineSeparator() + "is done? " + status;
+        return "description: " + description;
     }
+
 
 }
